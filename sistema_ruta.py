@@ -1,4 +1,4 @@
-# paso A : Definir las conexiones (nuestra base de conociento)
+# Definir las conexiones (nuestra base de conociento)
 # Que estaciones estan juntas 
 estaciones = {
     'Portal Norte': ['calle 100', 'Toberin'], 
@@ -38,3 +38,30 @@ def encontrar_ruta_inteligente(inicio, destino, grafo):
             visitados.add(estacion_actual)
 
     return None
+
+# interfaz de usuario (input/output)
+
+print("\n" + "="*40)
+print("Sistema de Rutas Inteligente")
+print("="*40)
+
+# pedimos los datos al usuario 
+
+origen = input("Ingrese la estación de salida: ").title()
+destino = input("Ingrese la estación de destino: ").title()
+
+#ejecutamos el motor de inferencia 
+
+ruta_encontrada = encontrar_ruta_inteligente(origen, destino, estaciones)
+
+# mostramos el resultado 
+
+if ruta_encontrada:
+    print("\n ¡Ruta encontrada!:")
+    print(f"Número de estaciones: {len(ruta_encontrada)}")
+    print(" -> ".join(ruta_encontrada))
+else:
+    print("\nError: Una o ambas estaciones no están en la base de conocimiento.")
+    print("Asegúrate de escribir nombres como 'Portal Norte' o 'Calle 100'.")
+    
+    print("="*40 + "\n")

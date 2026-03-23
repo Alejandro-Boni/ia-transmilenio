@@ -45,6 +45,19 @@ print("\n" + "="*40)
 print("Sistema de Rutas Inteligente")
 print("="*40)
 
+# Mejora:  convertir el grafo en bidireccional 
+
+grafo_completo = {}
+
+for estacion, vecinos in estaciones.items():
+    if estacion not in grafo_completo:
+        grafo_completo[estacion] = []
+    for vecino in vecinos:
+        grafo_completo[estacion].append(vecino)
+        if vecino not in grafo_completo:
+            grafo_completo[vecino] = []
+        grafo_completo[vecino].append(estacion)
+
 # pedimos los datos al usuario 
 
 origen = input("Ingrese la estación de salida: ").title()
@@ -52,7 +65,7 @@ destino = input("Ingrese la estación de destino: ").title()
 
 #ejecutamos el motor de inferencia 
 
-ruta_encontrada = encontrar_ruta_inteligente(origen, destino, estaciones)
+ruta_encontrada = encontrar_ruta_inteligente(origen, destino, grafo_completo)
 
 # mostramos el resultado 
 

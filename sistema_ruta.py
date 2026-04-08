@@ -1,80 +1,124 @@
-# Definir las conexiones (nuestra base de conociento)
-# Que estaciones estan juntas 
+# ============================================================
+# Sistema de Rutas Inteligente - TransMilenio (BFS)
+# ============================================================
+
+# Base de conocimiento: conexiones entre estaciones
+# Nombres normalizados: Title Case, tildes consistentes
+
 estaciones = {
-    'Portal Norte': ['calle 100', 'Toberin'], 
-    'Toberin': ['Portal Norte', 'Calle 161'],
-    'Calle 161': ['Toberín', 'Calle 142'],
-    'Calle 142': ['Calle 161', 'Prado'],
-    'Prado': ['Calle 142', 'Calle 127'],
-    'Calle 127': ['Prado', 'Pepe Sierra'],
-    'Pepe Sierra': ['Calle 127', 'Calle 100'],
-    'Calle 100': ['Portal Norte', 'Pepe Sierra', 'Calle 85'],
-    'Calle 85': ['Calle 100', 'Virrey'],
-    'Virrey': ['Calle 85', 'Calle 72'],
-    'Calle 72': ['Virrey', 'Avenida Caracas']
+    'Portal Norte': ['Calle 100', 'Toberin'],
+    'Toberin':      ['Portal Norte', 'Calle 161'],
+    'Calle 161':    ['Toberin', 'Calle 142'],
+    'Calle 142':    ['Calle 161', 'Prado'],
+    'Prado':        ['Calle 142', 'Calle 127'],
+    'Calle 127':    ['Prado', 'Pepe Sierra'],
+    'Pepe Sierra':  ['Calle 127', 'Calle 100'],
+    'Calle 100':    ['Portal Norte', 'Pepe Sierra', 'Calle 85'],
+    'Calle 85':     ['Calle 100', 'Virrey'],
+    'Virrey':       ['Calle 85', 'Calle 72'],
+    'Calle 72':     ['Virrey', 'Avenida Caracas'],
 }
-def encontrar_ruta_inteligente(inicio, destino, grafo):
-    # La cola guarda el camino 
+
+
+def construir_grafo_bidireccional(estaciones: dict) -> dict:
+    """
+    Construye un grafo bidireccional sin duplicados
+    a partir del diccionario de estaciones.
+    """
+    grafo = {}
+
+    for estacion, vecinos in estaciones.items():
+        if estacion not in grafo:
+            grafo[estacion] = []
+        for vecino in vecinos:
+            # Evitar duplicados al agregar el vecino
+            if vecino not in grafo[estacion]:
+                grafo[estacion].append(vecino)
+            # Agregar la conexión inversa
+            if vecino not in grafo:
+                grafo[vecino] = []
+            if estacion not in grafo[vecino]:
+                grafo[vecino].append(estacion)
+
+    return grafo
+
+
+def encontrar_ruta_inteligente(inicio: str, destino: str, grafo: dict) -> list | None:
+    """
+    Encuentra la ruta más corta entre dos estaciones usando BFS.
+    Retorna la lista de estaciones del camino, o None si no existe ruta.
+    """
+    if inicio == destino:
+        return [inicio]
+
     cola = [[inicio]]
-    visitados = set() # No vamos a dar vueltas en círculo
+    visitados = set()
 
     while cola:
-        # Sacamos el primer camino de la lista
         camino = cola.pop(0)
-        # Obtenemos la última estación de ese camino
         estacion_actual = camino[-1]
 
-        # ¿Llegamos al destino?
         if estacion_actual == destino:
             return camino
 
-        # Si no la hemos visitado, exploramos sus vecinos
         if estacion_actual not in visitados:
-            for vecino in grafo.get(estacion_actual, []):
-                nuevo_camino = list(camino)
-                nuevo_camino.append(vecino)
-                cola.append(nuevo_camino)
-            
             visitados.add(estacion_actual)
+            for vecino in grafo.get(estacion_actual, []):
+                if vecino not in visitados:
+                    nuevo_camino = list(camino)
+                    nuevo_camino.append(vecino)
+                    cola.append(nuevo_camino)
 
     return None
 
-# interfaz de usuario (input/output)
 
-print("\n" + "="*40)
-print("Sistema de Rutas Inteligente")
-print("="*40)
+def mostrar_estaciones_disponibles(grafo: dict) -> None:
+    """Imprime todas las estaciones disponibles en orden alfabético."""
+    print("\nEstaciones disponibles:")
+    for nombre in sorted(grafo.keys()):
+        print(f"  • {nombre}")
 
-# Mejora:  convertir el grafo en bidireccional 
 
-grafo_completo = {}
+def main():
+    print("\n" + "=" * 45)
+    print("   Sistema de Rutas Inteligente - BFS")
+    print("=" * 45)
 
-for estacion, vecinos in estaciones.items():
-    if estacion not in grafo_completo:
-        grafo_completo[estacion] = []
-    for vecino in vecinos:
-        grafo_completo[estacion].append(vecino)
-        if vecino not in grafo_completo:
-            grafo_completo[vecino] = []
-        grafo_completo[vecino].append(estacion)
+    grafo = construir_grafo_bidireccional(estaciones)
 
-# pedimos los datos al usuario 
+    origen  = input("\nIngrese la estación de salida:  ").strip().title()
+    destino = input("Ingrese la estación de destino: ").strip().title()
 
-origen = input("Ingrese la estación de salida: ").title()
-destino = input("Ingrese la estación de destino: ").title()
+    # Validar que ambas estaciones existen antes de buscar
+    errores = []
+    if origen not in grafo:
+        errores.append(f"  • '{origen}' no está en la base de conocimiento.")
+    if destino not in grafo:
+        errores.append(f"  • '{destino}' no está en la base de conocimiento.")
 
-#ejecutamos el motor de inferencia 
+    if errores:
+        print("\n⚠️  Error:")
+        for e in errores:
+            print(e)
+        mostrar_estaciones_disponibles(grafo)
+        print("=" * 45 + "\n")
+        return
 
-ruta_encontrada = encontrar_ruta_inteligente(origen, destino, grafo_completo)
+    # Ejecutar el motor de inferencia (BFS)
+    ruta = encontrar_ruta_inteligente(origen, destino, grafo)
 
-# mostramos el resultado 
+    print("\n" + "-" * 45)
+    if ruta:
+        paradas = len(ruta) - 1
+        print(f"✅ ¡Ruta encontrada!")
+        print(f"   Paradas:    {paradas}")
+        print(f"   Estaciones: {len(ruta)}")
+        print("\n   " + " → ".join(ruta))
+    else:
+        print("❌ No se encontró ruta entre las estaciones indicadas.")
 
-if ruta_encontrada:
-    print("\n ¡Ruta encontrada!:")
-    print(f"Número de estaciones: {len(ruta_encontrada)}")
-    print(" -> ".join(ruta_encontrada))
-else:
-    print("\nError: Una o ambas estaciones no están en la base de conocimiento.")
-    print("Asegúrate de escribir nombres como 'Portal Norte' o 'Calle 100'.")
-    
-    print("="*40 + "\n")
+    print("-" * 45 + "\n")
+
+
+if __name__ == "__main__":
+    main()
